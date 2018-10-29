@@ -4,45 +4,44 @@ import time
 import sqlite3
 
 from telepot.loop import MessageLoop
+bot = telepot.Bot('x')
 
-#Define variables, I know, not an ideal practice.
+dbConnection = sqlite3.connect('shurbot.db',check_same_thread=False)
+dbCursor = dbConnection.cursor()
+
+botInfo = bot.getMe()
+
+
 canon = 0
 nikon = 0
 olympus = 0
 sony = 0
 
-#Here I define the camera brands as string. Suggestions welcome to improvide this!
 canonString = "canon"
 nikonString = "nikon"
 olympusString = "olympus"
 sonyString = "sony"
 
-#Initiating a SQLITE databse
-db = sqlite3.connect(':memory:')
-cursor = db.cursor()
-cursor.execute('''CREATE TABLE main(id INTEGER PRIMARY KEY, name TEXT, cameraBrand TEXT)''')
-db.commit()
 
-def handle(msg): #This is the actual message we receive from telegram.
-    global canon 
+
+def handle(msg): 
+    global canon
     global nikon
     global olympus
     global sony
 
-#This is nice here to be able to quickly look for this info later while testing, will be removed on prod
     content_type, chat_type, chat_id = telepot.glance(msg)
-    
+
     message = msg['text'] 
     user = msg['from']['username']
     id = msg['message_id']
 
     #print(user + " " + msg['text']) #For debugging purposes
 
-    
+
     if canonString in message.lower():
+        dbCursor.execute("INSERT INTO shur VALUES(?,?,?,?)",(id,user,1,0))
         canon = canon + 1
-        cursor.execute('''INSERT INTO main(id, name, cameraBrand)
-                        VALUES(?,?,?)'''), (id,user,"canon")
         print(canon)
 
     if nikonString in message.lower():
@@ -54,6 +53,7 @@ def handle(msg): #This is the actual message we receive from telegram.
         print(olympus)
 
     if sonyString in message.lower():
+        dbCursor.execute("INSERT INTO shur VALUES(?,?,?,?)",(id,user,0,1))
         sony = sony + 1
         print(sony)
         
@@ -62,9 +62,12 @@ def handle(msg): #This is the actual message we receive from telegram.
     Nikon = {}
     Olympus = {}
     Sony = {}
-    
+
     """.format(canon, nikon, olympus, sony)
 
+
+
+    #This is the list of commands users can interact with through the chat
     if message == '/fanboy':
         bot.sendMessage(chat_id, endString)
 
@@ -72,11 +75,13 @@ def handle(msg): #This is the actual message we receive from telegram.
         bot.sendMessage(chat_id, 'is alive')
 
     if message == '/retrieve':
-        cursor.execute('''SELECT id,name,cameraBrand FROM main''')
-        userFromDb = cursor.fetchone()
-        print(userFromDb)
+        X = for row in dbCursor.execute('SELECT sum(canon) FROM shur ORDER BY id'):
+            print(row)
+        print(X)
+
+
 
 MessageLoop(bot, handle).run_as_thread()
 print ('Listening ...')
-
 input("")
+    
