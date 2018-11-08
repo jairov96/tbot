@@ -103,9 +103,29 @@ def handle(msg):
         bot.sendMessage(chat_id, 'is alive')
 
     if message == '/retrieve':
-        for row in dbCursor.execute('select user, sum(canon), sum(nikon), sum(olympus), sum(sony), sum(panasonic) from shur where user="%s"' % user):
-            print(row)
-        endString = "User / canon / nikon / olympus / sony / panasonic \n" + str(row)
+        
+        for camera in dbCursor.execute('select sum(canon) from shur where user="%s"' % user):
+            endcanon = camera
+        for camera in dbCursor.execute('select sum(nikon) from shur where user="%s"' % user):
+            endnikon = camera
+        for camera in dbCursor.execute('select sum(olympus) from shur where user="%s"' % user):
+            endolympus = camera
+        for camera in dbCursor.execute('select sum(sony) from shur where user="%s"' % user):
+            endsony = camera
+        for camera in dbCursor.execute('select sum(panasonic) from shur where user="%s"' % user):
+            endpanasonic = camera
+
+        #for row in dbCursor.execute('select user, sum(canon), sum(nikon), sum(olympus), sum(sony), sum(panasonic) from shur where user="%s"' % user):
+        #    print(row)
+        
+        endString = """Has mencionado las siguientes marcas tantas veces:
+        Canon = {}
+        Nikon = {}
+        Olympus = {}
+        Sony = {}
+        Panasonic = {}
+        """.format(endcanon, endnikon, endolympus, endsony, endpanasonic)
+        
         bot.sendMessage(chat_id, endString)
 
 
